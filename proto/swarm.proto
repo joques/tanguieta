@@ -2,6 +2,8 @@ syntax = "proto3";
 
 package avlo;
 
+import "google/protobuf/empty.proto";
+
 service Swarm {
 	// Create and return an IoT device based on a host
 	// IP address and port number
@@ -9,26 +11,26 @@ service Swarm {
 
 	// Report devices as failed when they stop responding
 	// to network messages
-	rpc SuspectDevice(DeviceGroup) returns (SuspicionResponse) {}
+	rpc SuspectDevice(DeviceGroup) returns (IoTDeviceStatus) {}
 
-	rpc ResurrectDevice(DeviceGroup) returns (SuspicionResponse) {}
+	rpc ResurrectDevice(DeviceGroup) returns (IoTDeviceStatus) {}
 
-	rpc StartCommunication(StartRequest) returns (stream SwarmMessage) {}
+	rpc StartCommunication(google.protobuf.Empty) returns (stream SwarmMessage) {}
 
-	rpc DeliverMessage(SwarmMessage) returns (DeliveryResponse) {}
+	rpc DeliverMessage(SwarmMessage) returns (google.protobuf.Empty) {}
 }
 
 message IoTProcess {
-	required int32 ip_part1 = 1;
-	required int32 ip_part2 = 2;
-	required int32 ip_part3 = 3;
-	required int32 ip_part4 = 4;
-	required int32 port_number = 5;
+	int32 ip_part1 = 1;
+	int32 ip_part2 = 2;
+	int32 ip_part3 = 3;
+	int32 ip_part4 = 4;
+	int32 port_number = 5;
 }
 
 message IoTDevice {
-	required string device_id = 1;
-	required IoTProcess owner = 2;
+	string device_id = 1;
+	IoTProcess owner = 2;
 	repeated IoTProcess neighbour = 3;
 }
 
@@ -36,14 +38,20 @@ message DeviceGroup {
 	repeated string device_id = 1;
 }
 
-message SuspicionResponse {
-	enum Suspicion {
-		MARKED = 0;
-		UNMARKED = 1;
+message IoTDeviceStatus {
+	enum DeviceStatus {
+		ACTIVE = 0;
+		SUSPECTED = 1;
+		LEFT = 2;
 	}
-	Suspicion value = 1 [default = MARKED];
+	DeviceStatus value = 1 [default = ACTIVE];
 }
 
-message StartRequest {
-	
+message SwarmMessage {
+	string swarm_ident = 1;
+	string sender = 2;
+	string topic = 3;
+	string content = 4;
+	repeated string path_element = 5;
 }
+
