@@ -73,9 +73,10 @@ impl Swarm for SwarmService {
 
 	async fn deliver_message(&self, request: Request<SwarmMessage>) -> Result<Response<()>, Status> {
 		let for_delivery = request.into_inner();
+		let the_topic = for_delivery.topic.clone();
 		// should mark the time the message was delivered
 
-		match message_store::MessageStore::singleton_mut().add_message(&for_delivery) {
+		match message_store::MessageStore::singleton_mut().add_message(the_topic, for_delivery) {
 			Err(failed_delivery) => {Err(Status::unknown(failed_delivery))}
 			Ok(_delivery_success) => {Ok(Response::new(()))}
 		}
