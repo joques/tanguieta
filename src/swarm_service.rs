@@ -5,7 +5,8 @@
 */
 
 use crate::iot_manager;
-use crate::message_buffer;
+use crate::message_store;
+
 
 use crate::avlo::swarm_server::Swarm;
 use crate::avlo::{IoTProcess, IoTDevice, DeviceGroup, IoTDeviceStatus, SwarmMessage};
@@ -71,6 +72,12 @@ impl Swarm for SwarmService {
 	}
 
 	async fn deliver_message(&self, request: Request<SwarmMessage>) -> Result<Response<()>, Status> {
-		unimplemented!()
+		let for_delivery = request.into_inner();
+		// should mark the time the message was delivered
+
+		match message_store::MessageStore::singleton_mut().add_message(&for_delivery) {
+			Err(failed_delivery) => {Err(Status::unknown(failed_delivery))}
+			Ok(_delivery_success) => {Ok(Response::new(()))}
+		}
 	}
 }
