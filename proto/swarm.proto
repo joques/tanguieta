@@ -44,7 +44,7 @@ message IoTDeviceStatus {
 		SUSPECTED = 1;
 		LEFT = 2;
 	}
-	DeviceStatus value = 1 [default = ACTIVE];
+	DeviceStatus value = 1;
 }
 
 message SwarmMessage {
