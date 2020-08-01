@@ -6,7 +6,7 @@
 
 use crate::iot_manager;
 use crate::message_store;
-
+use crate::message_buffer;
 
 use crate::avlo::swarm_server::Swarm;
 use crate::avlo::{IoTProcess, IoTDevice, DeviceGroup, IoTDeviceStatus, SwarmMessage};
@@ -14,7 +14,7 @@ use tokio::sync::mpsc;
 use tonic::{Request, Response, Status};
 
 #[derive(Debug)]
-struct SwarmService {
+pub struct SwarmService {
 	all_messages: Vec<SwarmMessage>,
 }
 
@@ -67,16 +67,27 @@ impl Swarm for SwarmService {
 		}
 	}
 
-	async fn start_communication(&self, request: Request<()>) -> Result<Response<Self::StartCommunicationStream>, Status> {
-		unimplemented!()
+	async fn start_communication(&self, _request: Request<()>) -> Result<Response<Self::StartCommunicationStream>, Status> {
+		let (mut tx, rx) = mpsc::channel(5);
+		let msgs = self.all_messages.clone();
+
+		tokio::spawn(async move {
+			for single_msg in &msgs[..] {
+				let _res = message_buffer::MessageBuffer::singleton_mut().add_to_buffer(single_msg.clone());
+				tx.send(Ok(single_msg.clone())).await.unwrap();
+			}
+		});
+
+		Ok(Response::new(rx))
 	}
 
 	async fn deliver_message(&self, request: Request<SwarmMessage>) -> Result<Response<()>, Status> {
 		let for_delivery = request.into_inner();
 		let the_topic = for_delivery.topic.clone();
+
 		// should mark the time the message was delivered
 
-		match message_store::MessageStore::singleton_mut().add_message(the_topic, for_delivery) {
+		match message_store::MessageStore::singleton_mut().add_message(&the_topic, for_delivery) {
 			Err(failed_delivery) => {Err(Status::unknown(failed_delivery))}
 			Ok(_delivery_success) => {Ok(Response::new(()))}
 		}

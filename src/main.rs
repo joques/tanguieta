@@ -10,12 +10,24 @@ mod iot_manager;
 mod message_buffer;
 mod message_store;
 
-use avlo::swarm_server::{Swarm};
+use avlo::swarm_server::{SwarmServer};
+use tonic::transport::Server;
 
 
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    println!("Welcome to Swarm server...!");
 
+    let addr = "[::1]:10000".parse().unwrap();
 
+    // should load all messages right away
+    let sm_service = swarm_service::SwarmService {
+        all_messages: Vec::new(),
+    };
 
-fn main() {
-    println!("Hello, world!");
+    let svc = SwarmServer::new(sm_service);
+
+    Server::builder().add_service(svc).serve(addr).await?;
+
+    Ok(())
 }
