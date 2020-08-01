@@ -21,9 +21,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let addr = "[::1]:10000".parse().unwrap();
 
     // should load all messages right away
-    let sm_service = swarm_service::SwarmService {
-        all_messages: Vec::new(),
-    };
+    let sm_service = swarm_service::SwarmService::new();
 
     let svc = SwarmServer::new(sm_service);
 

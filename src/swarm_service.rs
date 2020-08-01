@@ -18,10 +18,16 @@ pub struct SwarmService {
 	all_messages: Vec<SwarmMessage>,
 }
 
+impl SwarmService {
+	pub fn new() -> Self {
+		Self {
+			all_messages: Vec::new()
+		}
+	}
+}
 
 #[tonic::async_trait]
 impl Swarm for SwarmService {
-
 	type StartCommunicationStream = mpsc::Receiver<Result<SwarmMessage, Status>>;
 
 	async fn join_swarm(&self, request: Request<IoTProcess>) -> Result<Response<IoTDevice>, Status> {
@@ -87,7 +93,7 @@ impl Swarm for SwarmService {
 
 		// should mark the time the message was delivered
 
-		match message_store::MessageStore::singleton_mut().add_message(&the_topic, for_delivery) {
+		match message_store::MessageStore::singleton_mut().add_message(the_topic, for_delivery) {
 			Err(failed_delivery) => {Err(Status::unknown(failed_delivery))}
 			Ok(_delivery_success) => {Ok(Response::new(()))}
 		}

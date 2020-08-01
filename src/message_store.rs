@@ -24,13 +24,13 @@ impl MessageStore {
 		}
 	}
 
-	pub fn add_message(&mut self, the_topic: &String,  msg: SwarmMessage) -> Result<&str, &str> {
+	pub fn add_message(&mut self, the_topic: String,  msg: SwarmMessage) -> Result<&str, &str> {
 		
-		match self.store.get_mut(the_topic) {
+		match self.store.get_mut(&the_topic) {
 			None => {
 				let mut new_topic_store = Vec::new();
 				new_topic_store.push(msg);
-				self.store.insert(*the_topic, new_topic_store);
+				self.store.insert(the_topic, new_topic_store);
 				Ok("Message added for brand new topic")
 			}
 			Some(mesage_col) => {
